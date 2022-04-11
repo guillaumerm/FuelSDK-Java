@@ -76,8 +76,8 @@ public class ENSCallback extends ETENSRestObject{
      * 
      * @param url The url of the ENSCallback object.
      */
-    public void setUrl(URL url) {
-        this.url = url.toString();
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     /**
@@ -137,6 +137,4 @@ public class ENSCallback extends ETENSRestObject{
     public void setId(String id) {
         setCallbackId(id);
     }
-
-
 }
