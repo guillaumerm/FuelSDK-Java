@@ -5,6 +5,10 @@
  */
 package com.exacttarget.fuelsdk;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -20,7 +24,7 @@ public class ENSCallbackTest {
     private static ETClient client = null;
     private static String unique = "";
 
-    private ETAsset asset = null;
+    private ENSCallback callback = null;
     private String aid = "90840";
 
     public ENSCallbackTest() {
@@ -47,5 +51,87 @@ public class ENSCallbackTest {
             assertNotNull(result.getObject());
         }
     }
-    
+
+    @Test
+    public void getCallback()  throws ETSdkException
+    {
+        ETResponse<ENSCallback> response = client.retrieve(ENSCallback.class, "id="+aid);
+        System.out.println("resp="+ response.toString());
+        assertEquals(response.getResponseCode(), "200");
+        assertEquals(response.getResponseMessage(), "OK");
+        assertNotNull(response.getRequestId());
+
+        ETResult<ENSCallback> result = response.getResult();
+        if (result != null) {
+            System.out.println("res="+ result.toString());
+            assertEquals(result.getObjectId(), result);
+        }
+    }
+
+    @Test
+    public void createCallback() throws ETSdkException
+    {
+        try {
+            String callbackName = "JavaSDK";
+            int maxBatchSize = 100;
+            String url = "https://inspector.guillaumerm.dev/inspect";
+
+            callback = new ENSCallback();
+            callback.setCallbackName(callbackName);
+            callback.setUrl(url);
+            callback.setMaxBatchSize(maxBatchSize);
+            List<ENSCallback> callbacks = new ArrayList<ENSCallback>();
+            callbacks.add(callback);
+            ETResponse<ENSCallback> response = client.create(callbacks);
+            System.out.println("resp="+ response.toString());
+            List<ETResult<ENSCallback>> results = response.getResults();
+        } catch (ETSdkException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    public void deleteCallback() throws ETSdkException
+    {
+        try {
+            String callbackId = "5954e2a7-b225-47bf-9d62-face89568cf9";
+            callback = new ENSCallback();
+            callback.setId(callbackId);
+
+            ETResponse<ENSCallback> response = client.delete(callback);
+
+            ETResult<ENSCallback> result = response.getResult();
+
+            assertEquals(result.getResponseCode(), "200");
+            assertEquals(result.getResponseMessage(), "OK");
+        } catch (ETSdkException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Test
+    public void updateCallback() throws ETSdkException
+    {
+        try {
+            String callbackId = "5954e2a7-b225-47bf-9d62-face89568cf9";
+            String callbackName = "JavaSDK (Updated)";
+            int maxBatchSize = 100;
+            String url = "https://inspector.guillaumerm.dev/inspect";
+
+            callback = new ENSCallback();
+            callback.setCallbackId(callbackId);
+            callback.setCallbackName(callbackName);
+            callback.setMaxBatchSize(maxBatchSize);
+            callback.setUrl(url);
+
+            List<ENSCallback> callbacks = new ArrayList<ENSCallback>();
+            callbacks.add(callback);
+
+            ETResponse<ENSCallback> response = client.update(callbacks);
+
+            List<ETResult<ENSCallback>> results = response.getResults();
+        } catch (ETSdkException ex) {
+            ex.printStackTrace();
+        }
+    }
 }
