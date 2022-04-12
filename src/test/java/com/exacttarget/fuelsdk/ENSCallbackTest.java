@@ -74,7 +74,7 @@ public class ENSCallbackTest {
         try {
             String callbackName = "JavaSDK";
             int maxBatchSize = 100;
-            String url = "https://inspector.guillaumerm.dev/inspect";
+            String url = "";
 
             callback = new ENSCallback();
             callback.setCallbackName(callbackName);
@@ -94,7 +94,7 @@ public class ENSCallbackTest {
     public void deleteCallback() throws ETSdkException
     {
         try {
-            String callbackId = "5954e2a7-b225-47bf-9d62-face89568cf9";
+            String callbackId = "";
             callback = new ENSCallback();
             callback.setId(callbackId);
 
@@ -113,10 +113,10 @@ public class ENSCallbackTest {
     public void updateCallback() throws ETSdkException
     {
         try {
-            String callbackId = "5954e2a7-b225-47bf-9d62-face89568cf9";
+            String callbackId = "";
             String callbackName = "JavaSDK (Updated)";
             int maxBatchSize = 100;
-            String url = "https://inspector.guillaumerm.dev/inspect";
+            String url = "";
 
             callback = new ENSCallback();
             callback.setCallbackId(callbackId);
