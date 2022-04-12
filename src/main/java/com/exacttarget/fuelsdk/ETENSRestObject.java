@@ -280,4 +280,149 @@ public abstract class ETENSRestObject extends ETRestObject {
         return response;
     }
 
+    protected static <T extends ETRestObject> ETResponse<T> createUpdateDeleteSingle(ETClient client,
+            Method method,
+            T object)
+            throws ETSdkException {
+        ETResponse<T> response = new ETResponse<T>();
+
+        if (object == null) {
+            response.setStatus(ETResult.Status.OK);
+            return response;
+        }
+
+        ETRestConnection connection = client.getRestConnection();
+
+        //
+        // Automatically refresh the token if necessary:
+        //
+
+        client.refreshToken();
+
+        //
+        // Read call details from the RestObject annotation:
+        //
+
+        RestObject annotations = object.getClass().getAnnotation(RestObject.class);
+
+        assert annotations != null;
+
+        String path = annotations.path();
+        String primaryKey = annotations.primaryKey();
+
+        logger.trace("path: " + path);
+        logger.trace("primaryKey: " + primaryKey);
+
+        //
+        // There's currently no way to do this in bulk, so
+        // we walk through the list of objects and create,
+        // update, or delete them one at a time:
+        //
+
+        Gson gson = client.getGson();
+
+        if (method == DELETE) {
+
+            logger.trace("DELETE " + path + "/" + object.getId());
+
+            Response r = connection.delete(path + "/" + object.getId());
+
+            ETResult<T> result = new ETResult<T>();
+            result.setRequestId(r.getRequestId());
+            if (r.getResponseCode() >= 200 && r.getResponseCode() <= 299) {
+                result.setStatus(ETResult.Status.OK);
+            } else if (r.getResponseCode() >= 400 && r.getResponseCode() <= 599) {
+                result.setStatus(ETResult.Status.ERROR);
+            }
+            result.setResponseCode(r.getResponseCode().toString());
+            result.setResponseMessage(r.getResponseMessage());
+
+            response.addResult(result);
+
+            object.setClient(client); // XXX
+
+        } else if (method == POST || method == PUT) {
+
+            switch (method) {
+                case POST:
+                    logger.trace("POST " + path);
+                    break;
+                case PUT:
+                    logger.trace("PUT " + path);
+                    break;
+                default:
+                    throw new ETSdkException("invalid method: " + method);
+            }
+
+            String requestPayload = gson.toJson(object);
+            System.out.println(requestPayload);
+            if (logger.isTraceEnabled()) {
+                JsonParser jsonParser = new JsonParser();
+                JsonObject jsonObject = jsonParser.parse(requestPayload).getAsJsonObject();
+                String jsonPrettyPrinted = gson.toJson(jsonObject);
+                for (String line : jsonPrettyPrinted.split("\\n")) {
+                    logger.trace(line);
+                }
+            }
+
+            Response r = null;
+            switch (method) {
+                case POST:
+                    r = connection.post(path, requestPayload);
+                    break;
+                case PUT:
+                    r = connection.put(path, requestPayload);
+                    break;
+                default:
+                    throw new ETSdkException("invalid method: " + method);
+            }
+
+            response.setRequestId(r.getRequestId());
+            response.setResponseCode(r.getResponseCode().toString());
+            response.setResponseMessage(r.getResponseMessage());
+
+            if (r.getResponseCode() != 201) {
+                return response;
+            }
+
+            String responsePayload = r.getResponsePayload();
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = jsonParser.parse(responsePayload).getAsJsonObject();
+            if (logger.isTraceEnabled()) {
+                String jsonPrettyPrinted = gson.toJson(jsonObject);
+                for (String line : jsonPrettyPrinted.split("\\n")) {
+                    logger.trace(line);
+                }
+            }
+            @SuppressWarnings("unchecked")
+            T responseObject = (T) gson.fromJson(responsePayload, object.getClass());
+            System.out.println(responseObject);
+
+            object.setClient(client); // XXX
+
+            responseObject.setClient(client); // XXX
+
+            ETResult<T> result = new ETResult<T>();
+            result.setRequestId(r.getRequestId());
+            if (r.getResponseCode() >= 200 && r.getResponseCode() <= 299) {
+                result.setStatus(ETResult.Status.OK);
+            } else if (r.getResponseCode() >= 400 && r.getResponseCode() <= 599) {
+                result.setStatus(ETResult.Status.ERROR);
+            }
+            result.setResponseCode(r.getResponseCode().toString());
+            result.setResponseMessage(r.getResponseMessage());
+
+            result.setObject(responseObject);
+            result.setClient(client); // XXX
+            response.addResult(result);
+
+        } else {
+            throw new ETSdkException("invalid method: " + method);
+        }
+
+        // XXX set overall status
+
+        return response;
+    }
+
 }
