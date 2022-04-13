@@ -66,7 +66,27 @@ public abstract class ETENSRestObject extends ETRestObject {
 
         StringBuilder stringBuilder = new StringBuilder(path);
 
+        ETExpression expression = filter.getExpression();
+        if (expression.getOperator() != null) {
+            logger.trace("expression: " + filter.getExpression());
+
+            if (expression.getOperator() == ETExpression.Operator.EQUALS
+                    && expression.getProperty().equals(primaryKey)) {
+                //
+                // Append the primary key to the the path:
+                //
+
+                String s = "/" + expression.getValue();
+                stringBuilder.append(s);
+                if (logger.isTraceEnabled()) {
+                    logger.trace("appended primary key: " + s);
+                }
+            } 
+        }
+
         path = stringBuilder.toString();
+
+        System.out.println(path);
 
         logger.trace("GET " + path);
 
@@ -84,7 +104,7 @@ public abstract class ETENSRestObject extends ETRestObject {
         Gson gson = client.getGson();
 
         JsonParser jsonParser = new JsonParser();
-
+        System.out.println(r.getResponsePayload());
         try {
             JsonArray elements = jsonParser.parse(r.getResponsePayload()).getAsJsonArray();
             for (JsonElement element : elements) {
